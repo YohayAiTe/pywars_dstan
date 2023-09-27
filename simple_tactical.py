@@ -98,8 +98,6 @@ class MyStrategicApi(StrategicApi):
 
         artillery = self.get_piece_by_id(builder_defending_artillery[builder.id])
         if builder.tile.money > 0 and builder.tile.country == self.context.my_country:
-            if artillery:
-                artillery.attack()
             builder.collect_money(min(builder.tile.money, 5))
         else:
             locations = [
