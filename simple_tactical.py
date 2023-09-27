@@ -7,6 +7,8 @@ tank_to_coordinate_to_attack = {}
 tank_to_attacking_command = {}
 commands = []
 builder_next_piece = {}
+builder_defending_artillery = {}
+
 
 def move_tank_to_destination(tank, dest):
     """Returns True if the tank's mission is complete."""
@@ -50,6 +52,12 @@ class MyStrategicApi(StrategicApi):
         for tank_id in to_remove:
             del tank_to_coordinate_to_attack[tank_id]
 
+    def get_piece_by_id(self, piece_id):
+        for piece in self.context.all_pieces:
+            if piece.id == piece_id:
+                return piece
+        return None
+
     def attack(self, piece, destination, radius):
         tank = self.context.my_pieces[piece.id]
         if not tank or tank.type != 'tank':
@@ -60,7 +68,8 @@ class MyStrategicApi(StrategicApi):
             commands[old_command_id] = CommandStatus.failed(old_command_id)
 
         command_id = str(len(commands))
-        attacking_command = CommandStatus.in_progress(command_id, 0, common_types.distance(tank.tile.coordinates, destination))
+        attacking_command = CommandStatus.in_progress(command_id, 0,
+                                                      common_types.distance(tank.tile.coordinates, destination))
         tank_to_coordinate_to_attack[piece.id] = destination
         tank_to_attacking_command[piece.id] = command_id
         commands.append(attacking_command)
@@ -75,10 +84,22 @@ class MyStrategicApi(StrategicApi):
             builder.build_builder()
             builder_next_piece[builder.id] += 1
             return
-        elif builder_next_piece[builder.id] > 0 and builder.money >= 8:
+        if builder_next_piece[builder.id] == 1 and builder.money >= 8:
+            builder.build_artillery()
+            for piece in self.context.get_sightings(builder.id):
+                if piece.type == "artillery" and piece.tile.coordinates == builder.tile.coordinates:
+                    builder_defending_artillery[builder.id] = piece.id
+                    break
+            builder_next_piece[builder.id] += 1
+            return
+        elif builder_next_piece[builder.id] > 1 and builder.money >= 8:
             builder.build_tank()
             return
+
+        artillery = self.get_piece_by_id(builder_defending_artillery[builder.id])
         if builder.tile.money > 0 and builder.tile.country == self.context.my_country:
+            if artillery:
+                artillery.attack()
             builder.collect_money(min(builder.tile.money, 5))
         else:
             locations = [
@@ -96,15 +117,14 @@ class MyStrategicApi(StrategicApi):
             random.shuffle(locations)
             for loc in locations:
                 if self.context.tiles[loc].money > 0:
+                    if artillery:
+                        artillery.move(builder.tile.coordinates)
                     builder.move(loc)
                     return
 
+            if artillery:
+                artillery.move(builder.tile.coordinates)
             builder.move(locations[0])
-
-
-
-
-
 
     def estimate_tile_danger(self, destination):
         tile = self.context.tiles[(destination.x, destination.y)]
@@ -112,7 +132,7 @@ class MyStrategicApi(StrategicApi):
             return 0
         elif tile.country is None:
             return 1
-        else:   # Enemy country
+        else:  # Enemy country
             return 2
 
     def get_game_height(self):
@@ -122,7 +142,7 @@ class MyStrategicApi(StrategicApi):
         return self.context.game_width
 
     def report_attacking_pieces(self):
-        return {StrategicPiece(piece_id, piece.type) : tank_to_attacking_command.get(piece_id)
+        return {StrategicPiece(piece_id, piece.type): tank_to_attacking_command.get(piece_id)
                 for piece_id, piece in self.context.my_pieces.items()
                 if piece.type == 'tank'}
 
