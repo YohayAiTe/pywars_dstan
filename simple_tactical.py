@@ -1,10 +1,12 @@
 import common_types
 from strategic_api import CommandStatus, StrategicApi, StrategicPiece
+import tactical_api
+import random
 
 tank_to_coordinate_to_attack = {}
 tank_to_attacking_command = {}
 commands = []
-
+builder_next_piece = {}
 
 def move_tank_to_destination(tank, dest):
     """Returns True if the tank's mission is complete."""
@@ -64,6 +66,39 @@ class MyStrategicApi(StrategicApi):
         commands.append(attacking_command)
 
         return command_id
+
+    def move_builder_to_destination(self, builder):
+        """Returns True if the tank's mission is complete."""
+        if builder.id not in builder_next_piece:
+            builder_next_piece[builder.id] = 0
+        if builder_next_piece[builder.id] == 0 and builder.money >= 20:
+            builder.build_builder()
+            builder_next_piece[builder.id] += 1
+            return
+        elif builder_next_piece[builder.id] > 0 and builder.money >= 8:
+            builder.build_tank()
+            return
+        if builder.tile.money > 0:
+            builder.collect_money(min(builder.tile.money, 5))
+        else:
+            locations = [
+                common_types.Coordinates(builder.tile.coordinates.x - 1, builder.tile.coordinates.y),
+                common_types.Coordinates(builder.tile.coordinates.x + 1, builder.tile.coordinates.y),
+                common_types.Coordinates(builder.tile.coordinates.x, builder.tile.coordinates.y + 1),
+                common_types.Coordinates(builder.tile.coordinates.x, builder.tile.coordinates.y - 1)
+            ]
+            random.shuffle(locations)
+            for loc in locations:
+                if self.context.tiles[loc].money > 0:
+                    builder.move(loc)
+                    return
+
+            builder.move(locations[0])
+
+
+
+
+
 
     def estimate_tile_danger(self, destination):
         tile = self.context.tiles[(destination.x, destination.y)]
