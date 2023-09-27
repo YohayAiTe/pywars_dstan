@@ -78,7 +78,7 @@ class MyStrategicApi(StrategicApi):
         elif builder_next_piece[builder.id] > 0 and builder.money >= 8:
             builder.build_tank()
             return
-        if builder.tile.money > 0:
+        if builder.tile.money > 0 and builder.tile.country == self.context.my_country:
             builder.collect_money(min(builder.tile.money, 5))
         else:
             locations = [
@@ -87,6 +87,12 @@ class MyStrategicApi(StrategicApi):
                 common_types.Coordinates(builder.tile.coordinates.x, builder.tile.coordinates.y + 1),
                 common_types.Coordinates(builder.tile.coordinates.x, builder.tile.coordinates.y - 1)
             ]
+            locations = [
+                loc for loc in locations
+                if loc in self.context.tiles and self.context.tiles[loc].country == self.context.my_country
+            ]
+            if len(locations) == 0:
+                return
             random.shuffle(locations)
             for loc in locations:
                 if self.context.tiles[loc].money > 0:
