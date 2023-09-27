@@ -40,12 +40,12 @@ class CommandStatus(object):
         """The command ID."""
         self.elapsed_turns = elapsed_turns
         """The amount of turns since the command has been given.
-
+        
         This field is meaningful only if `self.is_in_progress()` returns True.
         """
         self.estimated_turns = estimated_turns
         """The estimated amount of turns required for completing the command execution.
-
+        
         This field is meaningful only if `self.is_in_progress()` returns True.
         """
 
