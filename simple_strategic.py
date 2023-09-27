@@ -2,7 +2,6 @@ import random
 
 import common_types
 
-
 def get_sorted_tiles_for_attack(strategic):
     unclaimed_tiles = []
     enemy_tiles = []
