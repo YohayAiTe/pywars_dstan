@@ -35,20 +35,6 @@ def move_tank_to_destination(tank, dest):
                                                           prev_command.estimated_turns - 1)
     return False
 
-def move_builder_to_destination(builder):
-    """Returns True if the tank's mission is complete."""
-    if builder.money >= 8:
-        builder.build_tank()
-    elif builder.tile.money > 0:
-        builder.collect_money(min(builder.tile.money,5))
-    else:
-        builder.move(random.choice([
-            common_types.Coordinates(builder.tile.coordinates.x - 1, builder.tile.coordinates.y),
-            common_types.Coordinates(builder.tile.coordinates.x + 1, builder.tile.coordinates.y),
-            common_types.Coordinates(builder.tile.coordinates.x, builder.tile.coordinates.y + 1),
-            common_types.Coordinates(builder.tile.coordinates.x, builder.tile.coordinates.y - 1)
-        ]))
-
 
 class MyStrategicApi(StrategicApi):
     def __init__(self, *args, **kwargs):
@@ -88,12 +74,23 @@ class MyStrategicApi(StrategicApi):
         elif builder.tile.money > 0:
             builder.collect_money(min(builder.tile.money, 5))
         else:
-            builder.move(random.choice([
+            locations = [
                 common_types.Coordinates(builder.tile.coordinates.x - 1, builder.tile.coordinates.y),
                 common_types.Coordinates(builder.tile.coordinates.x + 1, builder.tile.coordinates.y),
                 common_types.Coordinates(builder.tile.coordinates.x, builder.tile.coordinates.y + 1),
                 common_types.Coordinates(builder.tile.coordinates.x, builder.tile.coordinates.y - 1)
-            ]))
+            ]
+            random.shuffle(locations)
+            for loc in locations:
+                if self.context.tiles[loc].money > 0:
+                    builder.move(loc)
+                    return
+
+            builder.move(locations[0])
+
+
+
+
 
 
     def estimate_tile_danger(self, destination):
