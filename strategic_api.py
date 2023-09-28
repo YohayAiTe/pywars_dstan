@@ -1,72 +1,8 @@
-"""Module defining the strategic API interface."""
-
-import collections
-import inspect
-import types
-
-StrategicPiece = collections.namedtuple('StrategicPiece', ['id', 'type'])
-
-
-class CommandStatus(object):
-    """Represents the status of a command."""
-
-    @staticmethod
-    def failed(command_id):
-        """Creates a failed command status."""
-        return CommandStatus(command_id, failed=True)
-
-    @staticmethod
-    def success(command_id):
-        """Creates a successful command status."""
-        return CommandStatus(command_id, success=True)
-
-    @staticmethod
-    def in_progress(command_id, elapsed_turns, estimated_turns):
-        """Create an in-progress command report.
-
-        `elapsed_turns` is the amount of turns since the command has been given.
-        `estimated_turns` is the estimated amount of turns required for completing
-        the command execution (including `elapsed_turns`).
-        """
-        return CommandStatus(command_id, elapsed_turns=elapsed_turns, estimated_turns=estimated_turns)
-
-    def __init__(self, command_id, elapsed_turns=None, estimated_turns=None, failed=None, success=None):
-        """Constructor.
-
-        Please don't use the constructor directly. Use `CommandStatus.failed`,
-        `CommandStstus.success` or `CommandStatus.in_progress` instead.
-        """
-        self.command_id = command_id
-        """The command ID."""
-        self.elapsed_turns = elapsed_turns
-        """The amount of turns since the command has been given.
-        
-        This field is meaningful only if `self.is_in_progress()` returns True.
-        """
-        self.estimated_turns = estimated_turns
-        """The estimated amount of turns required for completing the command execution.
-        
-        This field is meaningful only if `self.is_in_progress()` returns True.
-        """
-
-        self._failed = failed
-        self._success = success
-
-    def is_success(self):
-        """Returns True iff this command has succeeded."""
-        return self._success == True
-
-    def is_failed(self):
-        """Returns True iff this command has failed."""
-        return self._failed == True
-
-    def is_in_progress(self):
-        """Returns True iff this command is still in progress."""
-        return self.elapsed_turns is not None and self.estimated_turns is not None
+from tactical_api import TurnContext
 
 
 class StrategicApi(object):
-    def __init__(self, context):
+    def __init__(self, context: TurnContext):
         """Constructor. context allows us to use the tactical API."""
         self.context = context
 
@@ -458,3 +394,124 @@ class StrategicApi(object):
         log_entry is expected to be a string, without a trailing new line character.
         """
         raise NotImplementedError()
+
+    class CommandStatus(object):
+        """Represents the status of a command."""
+
+        @staticmethod
+        def failed(command_id):
+            """Creates a failed command status."""
+            return CommandStatus(command_id, failed=True)
+
+        @staticmethod
+        def success(command_id):
+            """Creates a successful command status."""
+            return CommandStatus(command_id, success=True)
+
+        @staticmethod
+        def in_progress(command_id, elapsed_turns, estimated_turns):
+            """Create an in-progress command report.
+
+            `elapsed_turns` is the amount of turns since the command has been given.
+            `estimated_turns` is the estimated amount of turns required for completing
+            the command execution (including `elapsed_turns`).
+            """
+            return CommandStatus(command_id, elapsed_turns=elapsed_turns, estimated_turns=estimated_turns)
+
+        def __init__(self, command_id, elapsed_turns=None, estimated_turns=None, failed=None, success=None):
+            """Constructor.
+
+            Please don't use the constructor directly. Use `CommandStatus.failed`,
+            `CommandStstus.success` or `CommandStatus.in_progress` instead.
+            """
+            self.command_id = command_id
+            """The command ID."""
+            self.elapsed_turns = elapsed_turns
+            """The amount of turns since the command has been given.
+
+            This field is meaningful only if `self.is_in_progress()` returns True.
+            """
+            self.estimated_turns = estimated_turns
+            """The estimated amount of turns required for completing the command execution.
+
+            This field is meaningful only if `self.is_in_progress()` returns True.
+            """
+
+            self._failed = failed
+            self._success = success
+
+        def is_success(self):
+            """Returns True iff this command has succeeded."""
+            return self._success == True
+
+        def is_failed(self):
+            """Returns True iff this command has failed."""
+            return self._failed == True
+
+        def is_in_progress(self):
+            """Returns True iff this command is still in progress."""
+            return self.elapsed_turns is not None and self.estimated_turns is not None
+
+
+class CommandStatus(object):
+    """Represents the status of a command."""
+
+    @staticmethod
+    def failed(command_id):
+        """Creates a failed command status."""
+        return CommandStatus(command_id, failed=True)
+
+    @staticmethod
+    def success(command_id):
+        """Creates a successful command status."""
+        return CommandStatus(command_id, success=True)
+
+    @staticmethod
+    def in_progress(command_id, elapsed_turns, estimated_turns):
+        """Create an in-progress command report.
+
+        `elapsed_turns` is the amount of turns since the command has been given.
+        `estimated_turns` is the estimated amount of turns required for completing
+        the command execution (including `elapsed_turns`).
+        """
+        return CommandStatus(command_id, elapsed_turns=elapsed_turns, estimated_turns=estimated_turns)
+
+    def __init__(self, command_id, elapsed_turns=None, estimated_turns=None, failed=None, success=None):
+        """Constructor.
+
+        Please don't use the constructor directly. Use `CommandStatus.failed`,
+        `CommandStstus.success` or `CommandStatus.in_progress` instead.
+        """
+        self.command_id = command_id
+        """The command ID."""
+        self.elapsed_turns = elapsed_turns
+        """The amount of turns since the command has been given.
+
+        This field is meaningful only if `self.is_in_progress()` returns True.
+        """
+        self.estimated_turns = estimated_turns
+        """The estimated amount of turns required for completing the command execution.
+
+        This field is meaningful only if `self.is_in_progress()` returns True.
+        """
+
+        self._failed = failed
+        self._success = success
+
+    def is_success(self):
+        """Returns True iff this command has succeeded."""
+        return self._success == True
+
+    def is_failed(self):
+        """Returns True iff this command has failed."""
+        return self._failed == True
+
+    def is_in_progress(self):
+        """Returns True iff this command is still in progress."""
+        return self.elapsed_turns is not None and self.estimated_turns is not None
+
+
+class StrategicPiece:
+    def __init__(self, id, type):
+        self.id = id
+        self.type = type

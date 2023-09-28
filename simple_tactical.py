@@ -96,7 +96,11 @@ class MyStrategicApi(StrategicApi):
             builder.build_tank()
             return
 
-        artillery = self.get_piece_by_id(builder_defending_artillery[builder.id])
+        artillery = None
+        if builder.id in builder_defending_artillery:
+            artillery = self.get_piece_by_id(builder_defending_artillery[builder.id])
+            if artillery is None:
+                del builder_defending_artillery[builder.id]
         if builder.tile.money > 0 and builder.tile.country == self.context.my_country:
             builder.collect_money(min(builder.tile.money, 5))
         else:
