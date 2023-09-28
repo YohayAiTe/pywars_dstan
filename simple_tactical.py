@@ -181,7 +181,7 @@ class MyStrategicApi(StrategicApi):
         else:
             return False
 
-    def follow_to_random_tile(self, antitank_id):
+    def anti_tank_wander(self, antitank_id):
         my_tiles = self.context.get_tiles_of_country(self.context.my_country)
         border_tiles = [tile for tile in my_tiles if self.is_border_tile(tile)]
         return move_piece_to_destination(antitank_id, random.choice(border_tiles).coordinates)
