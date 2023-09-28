@@ -33,14 +33,15 @@ def do_turn(strategic: MyStrategicApi):
     attacking_pieces = strategic.report_attacking_pieces()
     tile_index = 0
     for piece, command_id in attacking_pieces.items():
-        if piece.type != 'tank':
-            continue
-        if command_id is not None:
-            continue
-        strategic.attack(piece, tiles_for_attack[tile_index], 1)
-        tile_index += 1
-        if tile_index >= len(tiles_for_attack):
-            break
+        if piece.type == 'tank':
+            if command_id is not None:
+                continue
+            strategic.attack(piece, tiles_for_attack[tile_index], 1)
+            tile_index += 1
+            if tile_index >= len(tiles_for_attack):
+                break
+        elif piece.type == 'antitank':
+            strategic.anti_tank_wander(piece.id)
     for piece in strategic.context.my_pieces.values():
         if piece.type == "builder":
             strategic.move_builder_to_destination(piece)

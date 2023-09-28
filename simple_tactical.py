@@ -8,6 +8,37 @@ tank_to_attacking_command = {}
 commands = []
 builder_next_piece = {}
 builder_defending_artillery = {}
+following_unit = {}
+
+
+def move_piece_to_destination(piece, dest):
+    """Returns False if the piece is in destination."""
+    piece_coordinate = piece.tile.coordinates
+
+    if random.random() < 0.5:
+        if dest.x < piece_coordinate.x:
+            new_coordinate = common_types.Coordinates(piece_coordinate.x - 1, piece_coordinate.y)
+        elif dest.x > piece_coordinate.x:
+            new_coordinate = common_types.Coordinates(piece_coordinate.x + 1, piece_coordinate.y)
+        elif dest.y < piece_coordinate.y:
+            new_coordinate = common_types.Coordinates(piece_coordinate.x, piece_coordinate.y - 1)
+        elif dest.y > piece_coordinate.y:
+            new_coordinate = common_types.Coordinates(piece_coordinate.x, piece_coordinate.y + 1)
+        else:
+            return False
+    else:
+        if dest.y > piece_coordinate.y:
+            new_coordinate = common_types.Coordinates(piece_coordinate.x, piece_coordinate.y + 1)
+        elif dest.y < piece_coordinate.y:
+            new_coordinate = common_types.Coordinates(piece_coordinate.x, piece_coordinate.y - 1)
+        elif dest.x > piece_coordinate.x:
+            new_coordinate = common_types.Coordinates(piece_coordinate.x + 1, piece_coordinate.y)
+        elif dest.x < piece_coordinate.x:
+            new_coordinate = common_types.Coordinates(piece_coordinate.x - 1, piece_coordinate.y)
+        else:
+            return False
+    piece.move(new_coordinate)
+    return True
 
 
 def move_tank_to_destination(tank, dest):
@@ -127,6 +158,33 @@ class MyStrategicApi(StrategicApi):
             if artillery:
                 artillery.move(builder.tile.coordinates)
             builder.move(locations[0])
+
+    def closest_of_type(self, coord, piece_type):
+        pieces = [piece for piece in self.context.my_pieces.values() if piece.type == piece_type]
+        sorted_pieces = sorted(pieces, key=lambda piece: tactical_api.distance(piece.tile.coordinates, coord))
+        return sorted_pieces
+
+    def follow_piece(self, following_id, id_to_follow):
+        following_unit[following_id] = id_to_follow
+        if id_to_follow:
+            return move_piece_to_destination(self.context.my_pieces[following_id],
+                                             self.context.my_pieces[id_to_follow].tile.coordinates)
+
+    def is_border_tile(self, tile):
+        if tile not in self.context.get_tiles_of_country(self.context.my_country):
+            return False
+        elif self.context.tiles[(tile.coordinates.x + 1, tile.coordinates.y)].country != self.context.my_country or \
+                self.context.tiles[(tile.coordinates.x, tile.coordinates.y + 1)].country != self.context.my_country or \
+                self.context.tiles[(tile.coordinates.x - 1, tile.coordinates.y)].country != self.context.my_country or \
+                self.context.tiles[(tile.coordinates.x, tile.coordinates.y - 1)].country != self.context.my_country:
+            return True
+        else:
+            return False
+
+    def anti_tank_wander(self, antitank_id):
+        my_tiles = self.context.get_tiles_of_country(self.context.my_country)
+        border_tiles = [tile for tile in my_tiles if self.is_border_tile(tile)]
+        return move_piece_to_destination(antitank_id, random.choice(border_tiles).coordinates)
 
     def estimate_tile_danger(self, destination):
         tile = self.context.tiles[(destination.x, destination.y)]
